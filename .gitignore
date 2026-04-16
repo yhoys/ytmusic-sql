@@ -1,0 +1,23 @@
+# Environment variables — never commit credentials
+.env
+.env.local
+
+# PostgreSQL dumps
+*.dump
+*.backup
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/settings.json
+
+# Python (Phase 2)
+__pycache__/
+*.pyc
+.venv/
+
+# Node (Phase 3)
+node_modules/
+.next/
