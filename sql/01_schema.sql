@@ -11,6 +11,10 @@
 -- Used to detect duplicate songs with slightly different titles
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
+-- Enables accent-insensitive search
+-- Used alongside pg_trgm for better duplicate detection
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
 -- --------------------------------------------------------------------------------
 -- Table: songs
 -- Core catalog. Every song lives here exactly once.
