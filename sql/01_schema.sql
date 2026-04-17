@@ -1,0 +1,12 @@
+-- =============================================================================
+-- YouTube Music SQL — Schema
+-- =============================================================================
+-- Run this file first, before any other SQL file.
+-- PostgreSQL 14+
+-- =============================================================================
+-- -----------------------------------------------------------------------------
+-- Extensions
+-- -----------------------------------------------------------------------------
+-- Enables fuzzy text search (similarity, levenshtein)
+-- Used to detect duplicate songs with slightly different titles
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
