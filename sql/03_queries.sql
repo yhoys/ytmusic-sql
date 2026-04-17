@@ -142,3 +142,21 @@ SELECT sb.id AS backup_id,
 FROM song_backups sb
     LEFT JOIN songs s ON sb.song_id = s.id
 ORDER BY sb.backed_up_at DESC;
+
+-- --------------------------------------------------------------------------------
+-- Query 7: Songs in Música que te gustó but not in any other playlist
+-- These are liked songs that haven't been organized yet
+-- --------------------------------------------------------------------------------
+SELECT s.id,
+    s.title,
+    s.artist,
+    s.language
+FROM songs s
+    JOIN playlist_songs ps ON s.id = ps.song_id
+WHERE ps.playlist_id = 1
+    AND s.id NOT IN (
+        SELECT song_id
+        FROM playlist_songs
+        WHERE playlist_id != 1
+    )
+ORDER BY s.artist;

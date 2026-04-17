@@ -205,3 +205,50 @@ VALUES -- English songs
         NULL,
         'es'
     );
+
+-- --------------------------------------------------------------------------------
+-- Playlist songs
+-- --------------------------------------------------------------------------------
+-- Música que te gustó (playlist_id = 1): all songs
+-- English (playlist_id = 2): songs with language = 'en'
+-- Español (playlist_id = 3): songs with language = 'es'
+-- Cristiana (playlist_id = 4): gospel songs
+-- ??? (playlist_id = 5): random songs
+-- Otros idiomas (playlist_id = 6): songs with language not 'en' or 'es'
+-- -----------------------------------------------------------------------------------
+INSERT INTO playlist_songs (playlist_id, song_id)
+VALUES -- Música que te gustó - todas
+    (1, 1),
+    (1, 2),
+    (1, 3),
+    (1, 4),
+    (1, 5),
+    (1, 6),
+    (1, 7),
+    (1, 8),
+    (1, 9),
+    (1, 10),
+    (1, 11),
+    (1, 12),
+    (1, 13),
+    -- English
+    (2, 1),
+    (2, 2),
+    (2, 3),
+    (2, 4),
+    (2, 5),
+    (2, 6),
+    (2, 11),
+    (2, 12),
+    -- Español
+    (3, 7),
+    (3, 8),
+    (3, 9),
+    (3, 10),
+    (3, 13),
+    -- Cristiana
+    (4, 11),
+    (4, 12);
+
+-- ??? y Otros idioma no tienen canciones en los datos de prueba
+-- Real songs will be imported via ytmusicapi in Phase 2
