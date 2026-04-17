@@ -59,3 +59,86 @@ FROM songs a
         unaccent(LOWER(b.title))
     ) > 0.6
 ORDER BY score DESC;
+
+-- --------------------------------------------------------------------------------
+-- Query 4: Smart search before adding a new song
+-- Run this before every INSERT to avoid duplicates
+-- Replace the values in the WHERE clause with the song you want to add
+-- --------------------------------------------------------------------------------
+SELECT id,
+    title,
+    artist,
+    album,
+    yt_video_id,
+    ROUND(
+        similarity(
+            unaccent(LOWER(title)),
+            unaccent(LOWER('Blinding Lights'))
+        )::NUMERIC,
+        2
+    ) AS score
+FROM songs
+WHERE similarity(
+        unaccent(LOWER(title)),
+        unaccent(LOWER('Blinding Lights'))
+    ) > 0.5
+    AND LOWER(artist) = LOWER('The Weeknd')
+ORDER BY score DESC;
+
+-- --------------------------------------------------------------------------------
+-- Query 5: Safe delete - backup before removing a duplicate
+-- Step 1: backup the song
+-- Step 2: delete it
+-- Run both steps together as a transaction
+-- --------------------------------------------------------------------------------
+BEGIN;
+
+-- Step 1: save a snapshot to song_backups
+INSERT INTO song_backups (
+        song_id,
+        title,
+        artist,
+        album,
+        duration_sec,
+        release_year,
+        genre,
+        yt_video_id,
+        language,
+        reason
+    )
+SELECT id,
+    title,
+    artist,
+    album,
+    duration_sec,
+    release_year,
+    genre,
+    yt_video_id,
+    language,
+    'before_delete' -- or 'before_update' if modifying instead of deleting
+FROM songs
+WHERE id = 14;
+
+-- Step 2: delete the duplicate
+DELETE FROM songs
+WHERE id = 14;
+
+COMMIT;
+
+-- --------------------------------------------------------------------------------
+-- Query 6: View deleted or modified songs from backup
+-- --------------------------------------------------------------------------------
+SELECT sb.id AS backup_id,
+    sb.song_id,
+    sb.title,
+    sb.artist,
+    sb.album,
+    sb.reason,
+    sb.backed_up_at,
+    CASE
+        WHEN s.id IS NULL THEN 'deleted'
+        ELSE 'still exists'
+    END AS current_status
+FROM song_backups sb
+    LEFT JOIN songs s ON sb.song_id = s.id
+ORDER BY sb.backed_up_at DESC;
