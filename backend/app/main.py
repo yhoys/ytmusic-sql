@@ -5,7 +5,7 @@
 # Run with: uvicorn backend.app.main:app --reload
 # =============================================================================
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from .database import get_db
 
 app = FastAPI(
@@ -110,6 +110,55 @@ def get_duplicates():
         """)
         duplicates = cursor.fetchall()
         return {"total": len(duplicates), "duplicates": duplicates}
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# --------------------------------------------------------------------------------
+# Smart search before adding a song
+# --------------------------------------------------------------------------------
+
+
+@app.get("/songs/search")
+def search_songs(title: str, artist: str):
+    """
+    Searches for similar songs before adding a new one.
+    Returns matches with a similarity score
+    Use this before inserting to avoid duplicates.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            SELECT
+                id,
+                title,
+                artist,
+                album,
+                yt_video_id,
+                ROUND(similarity(
+                    unaccent(LOWER(title)),
+                    unaccent(LOWER(%s))
+                )::NUMERIC, 2) AS score
+            FROM songs
+            WHERE
+                similarity(
+                    unaccent(LOWER(title)),
+                    unaccent(LOWER(%s))
+                ) > 0.5
+                AND LOWER(artist) = LOWER(%s)
+            ORDER BY score DESC;
+        """,
+            (title, title, artist),
+        )
+        results = cursor.fetchall()
+        return {
+            "query": {"title": title, "artist": artist},
+            "total": len(results),
+            "results": results,
+        }
     finally:
         cursor.close()
         conn.close()
