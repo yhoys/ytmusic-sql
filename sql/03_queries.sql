@@ -37,7 +37,7 @@ ORDER BY artist,
 -- Uses pg_trgm similarity to catch accent and spelling variations
 -- unaccent() removes accents before comparing
 -- 0 = completly different, 1 = identical
--- Threshold 0.6 catches most variations without too many false positives
+-- Threshold 0.85 catches most variations without too many false positives
 -- --------------------------------------------------------------------------------
 SELECT a.id AS id_a,
     a.title AS title_a,
@@ -57,7 +57,7 @@ FROM songs a
     AND similarity(
         unaccent(LOWER(a.title)),
         unaccent(LOWER(b.title))
-    ) > 0.6
+    ) > 0.85
 ORDER BY score DESC;
 
 -- --------------------------------------------------------------------------------

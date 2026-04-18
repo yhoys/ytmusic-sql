@@ -105,7 +105,7 @@ def get_duplicates():
                 AND similarity(
                     unaccent(LOWER(a.title)),
                     unaccent(LOWER(b.title))
-                ) > 0.6
+                ) > 0.85
             ORDER BY score DESC;
         """)
         duplicates = cursor.fetchall()
