@@ -11,8 +11,8 @@ Diseñado para escalar: aunque arranca solo con SQL, la estructura está pensada
 | Fase | Descripción              | Estado       |
 | ---- | ------------------------ | ------------ |
 | 1    | Base de datos PostgreSQL | ✅ Completo  |
-| 2    | Backend Python + FastAPI | 🔜 Próximo   |
-| 3    | Frontend React / Next.js | 🔜 Pendiente |
+| 2    | Backend Python + FastAPI | ✅ Completo  |
+| 3    | Frontend React / Next.js | 🔜 Próximo   |
 | 4    | Docker + despliegue      | 🔜 Pendiente |
 | 5    | IA para recomendaciones  | 🔜 Pendiente |
 
@@ -28,10 +28,79 @@ Al usar YouTube Music durante mucho tiempo es fácil acumular canciones duplicad
 
     ytmusic-sql/
     ├── README.md
+    ├── .env                        # Credenciales locales (no en GitHub)
+    ├── auth/
+    │   └── browser.json            # Credenciales ytmusicapi (no en GitHub)
+    ├── backend/
+    │   ├── ytmusic_import.py       # Importa canciones desde YouTube Music
+    │   ├── test_connection.py      # Verifica conexión a PostgreSQL
+    │   └── app/
+    │       ├── main.py             # API FastAPI con todos los endpoints
+    │       └── database.py         # Conexión a PostgreSQL
     └── sql/
-        ├── 01_schema.sql       # Tablas, índices, extensiones
-        ├── 02_seed_data.sql    # Datos de prueba con duplicados intencionales
-        └── 03_queries.sql      # Consultas de detección, búsqueda y limpieza
+        ├── 01_schema.sql           # Tablas, índices, extensiones
+        ├── 02_seed_data.sql        # Datos de prueba
+        └── 03_queries.sql          # Consultas de detección y limpieza
+
+---
+
+## Requisitos
+
+- PostgreSQL 14+
+- Python 3.11+
+- DBeaver o cualquier cliente SQL
+
+## Instalación
+
+### 1. Clonar el repositorio
+
+    git clone https://github.com/TU_USUARIO/ytmusic-sql.git
+    cd ytmusic-sql
+
+### 2. Crear el entorno virtual
+
+    python -m venv .venv
+    .venv\Scripts\activate       # Windows
+    source .venv/bin/activate    # Mac/Linux
+
+### 3. Instalar dependencias
+
+    pip install fastapi uvicorn psycopg2-binary python-dotenv ytmusicapi
+
+### 4. Configurar credenciales
+
+Crea un archivo `.env` en la raíz del proyecto:
+
+    DB_HOST=localhost
+    DB_PORT=5432
+    DB_NAME=ytmusic_sql
+    DB_USER=ytmusic_user
+    DB_PASSWORD=tu_contraseña
+
+### 5. Crear la base de datos
+
+Ejecuta en PostgreSQL con el usuario superusuario:
+
+    CREATE DATABASE ytmusic_sql;
+    CREATE EXTENSION IF NOT EXISTS pg_trgm;
+    CREATE EXTENSION IF NOT EXISTS unaccent;
+
+Luego ejecuta los archivos SQL en orden:
+
+    sql/01_schema.sql
+    sql/02_seed_data.sql
+
+### 6. Correr el servidor
+
+    uvicorn backend.app.main:app --reload
+
+La API queda disponible en `http://127.0.0.1:8000`.
+La documentación automática en `http://127.0.0.1:8000/docs`.
+
+### 7. Importar tu biblioteca de YouTube Music
+
+    ytmusicapi browser    # Autenticar con tu cuenta
+    python backend/ytmusic_import.py
 
 ---
 
@@ -93,6 +162,29 @@ Porque dos canciones pueden tener el mismo título pero son videos distintos en 
 
 **¿Por qué índices de trigramas en `title` y `artist`?**
 Para que las búsquedas con `similarity()` usen el índice en lugar de revisar toda la tabla fila por fila. Con cientos de canciones la diferencia es significativa.
+
+---
+
+## API endpoints
+
+| Método | Endpoint                       | Descripción                                 |
+| ------ | ------------------------------ | ------------------------------------------- |
+| GET    | `/`                            | Health check                                |
+| GET    | `/songs`                       | Todas las canciones                         |
+| GET    | `/songs/search?title=&artist=` | Búsqueda inteligente antes de agregar       |
+| GET    | `/songs/duplicates`            | Canciones duplicadas con score de similitud |
+| POST   | `/songs`                       | Agregar canción con verificación automática |
+| GET    | `/playlists`                   | Playlists con conteo de canciones           |
+
+## Importación desde YouTube Music
+
+El script `backend/ytmusic_import.py` conecta directamente con tu cuenta de YouTube Music usando `ytmusicapi` y:
+
+- Importa todas tus playlists y canciones automáticamente
+- Detecta canciones ya existentes antes de insertar (por `yt_video_id` y similitud de título)
+- Evita duplicados usando `ON CONFLICT DO NOTHING`
+- Mapea nombres de playlists autogeneradas (`Liked Music` → `Música que te gustó`)
+- Es seguro de ejecutar múltiples veces sin crear duplicados
 
 ---
 
