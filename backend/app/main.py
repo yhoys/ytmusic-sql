@@ -5,7 +5,7 @@
 # Run with: uvicorn backend.app.main:app --reload
 # =============================================================================
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from .database import get_db
 
 app = FastAPI(
@@ -159,6 +159,101 @@ def search_songs(title: str, artist: str):
             "total": len(results),
             "results": results,
         }
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# --------------------------------------------------------------------------------
+# Add a new song safely
+# --------------------------------------------------------------------------------
+
+
+@app.post("/songs")
+def add_song(
+    title: str,
+    artist: str,
+    album: str = None,
+    duration_sec: int = None,
+    release_year: int = None,
+    genre: str = None,
+    yt_video_id: str = None,
+    language: str = None,
+):
+    """
+    Adds a new song to the catalog.
+    Automatically checks for duplicates before inserting.
+    Rejects the insertion if a similar song already exists (score > 0.85).
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        # Step 1: check for duplicates
+        cursor.execute(
+            """
+            SELECT
+                id,
+                title,
+                artist,
+                ROUND(similarity(
+                    unaccent(LOWER(title)),
+                    unaccent(LOWER(%s))
+                )::NUMERIC, 2) AS score
+            FROM songs
+            WHERE
+                similarity(
+                    unaccent(LOWER(title)),
+                    unaccent(LOWER(%s))
+                ) > 0.85
+                AND LOWER(artist) = LOWER(%s)
+            ORDER BY score DESC
+            LIMIT 1;
+        """,
+            (title, title, artist),
+        )
+
+        existing = cursor.fetchone()
+
+        if existing:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "message": "A similar song already exists",
+                    "existing": {
+                        "id": existing["id"],
+                        "title": existing["title"],
+                        "artist": existing["artist"],
+                        "score": float(existing["score"]),
+                    },
+                },
+            )
+
+        # Step 2: insert the new song
+        cursor.execute(
+            """
+            INSERT INTO songs (
+                title, artist, album, duration_sec,
+                release_year, genre, yt_video_id, language
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id, title, artist;
+        """,
+            (
+                title,
+                artist,
+                album,
+                duration_sec,
+                release_year,
+                genre,
+                yt_video_id,
+                language,
+            ),
+        )
+
+        conn.commit()
+        new_song = cursor.fetchone()
+        return {"message": "Song added successfully", "song": new_song}
+
     finally:
         cursor.close()
         conn.close()
