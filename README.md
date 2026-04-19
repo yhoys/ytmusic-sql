@@ -12,8 +12,8 @@ Diseñado para escalar: aunque arranca solo con SQL, la estructura está pensada
 | ---- | ------------------------ | ------------ |
 | 1    | Base de datos PostgreSQL | ✅ Completo  |
 | 2    | Backend Python + FastAPI | ✅ Completo  |
-| 3    | Frontend React / Next.js | 🔜 Próximo   |
-| 4    | Docker + despliegue      | 🔜 Pendiente |
+| 3    | Frontend React / Next.js | ✅ Completo  |
+| 4    | Docker + despliegue      | 🔜 Próximo   |
 | 5    | IA para recomendaciones  | 🔜 Pendiente |
 
 ---
@@ -33,10 +33,20 @@ Al usar YouTube Music durante mucho tiempo es fácil acumular canciones duplicad
     │   └── browser.json            # Credenciales ytmusicapi (no en GitHub)
     ├── backend/
     │   ├── ytmusic_import.py       # Importa canciones desde YouTube Music
+    │   ├── export.py               # Exporta biblioteca a Excel
     │   ├── test_connection.py      # Verifica conexión a PostgreSQL
     │   └── app/
     │       ├── main.py             # API FastAPI con todos los endpoints
     │       └── database.py         # Conexión a PostgreSQL
+    ├── frontend/
+    │   └── app/
+    │       ├── page.js             # Dashboard principal
+    │       ├── songs/
+    │       │   └── page.js         # Lista de canciones
+    │       ├── duplicates/
+    │       │   └── page.js         # Detección de duplicados
+    │       └── components/
+    │           └── PlaylistsSection.js
     └── sql/
         ├── 01_schema.sql           # Tablas, índices, extensiones
         ├── 02_seed_data.sql        # Datos de prueba
