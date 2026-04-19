@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PlaylistsSection from "./components/PlaylistsSection";
 
 async function getStats() {
@@ -11,10 +12,10 @@ export default async function Home() {
   const stats = await getStats();
 
   const cards = [
-    { label: "Canciones", value: stats.total_songs },
-    { label: "Artistas", value: stats.total_artists },
-    { label: "Playlists", value: stats.total_playlists },
-    { label: "Sin organizar", value: stats.unorganized_songs },
+    { label: "Canciones", value: stats.total_songs, href: "/songs" },
+    { label: "Artistas", value: stats.total_artists, href: null },
+    { label: "Playlists", value: stats.total_playlists, href: null },
+    { label: "Sin organizar", value: stats.unorganized_songs, href: null },
   ];
 
   return (
@@ -27,15 +28,26 @@ export default async function Home() {
       </p>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 mb-10">
-        {cards.map((card) => (
-          <div
-            key={card.label}
-            className="bg-gray-900 rounded-xl p-6 border border-gray-800"
-          >
-            <p className="text-gray-400 text-sm mb-1">{card.label}</p>
-            <p className="text-3xl font-bold text-white">{card.value}</p>
-          </div>
-        ))}
+        {cards.map((card) =>
+          card.href ? (
+            <Link
+              key={card.label}
+              href={card.href}
+              className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-red-500 transition-colors"
+            >
+              <p className="text-gray-400 text-sm mb-1">{card.label}</p>
+              <p className="text-3xl font-bold text-white">{card.value}</p>
+            </Link>
+          ) : (
+            <div
+              key={card.label}
+              className="bg-gray-900 rounded-xl p-6 border border-gray-800"
+            >
+              <p className="text-gray-400 text-sm mb-1">{card.label}</p>
+              <p className="text-3xl font-bold text-white">{card.value}</p>
+            </div>
+          ),
+        )}
       </div>
 
       <h2 className="text-xl font-semibold text-white mb-4">Playlists</h2>
