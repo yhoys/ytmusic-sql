@@ -77,6 +77,42 @@ def get_playlists():
 
 
 # --------------------------------------------------------------------------------
+# Dashboard stats
+# --------------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Dashboard stats
+# -----------------------------------------------------------------------------
+
+
+@app.get("/stats")
+def get_stats():
+    """Returns a summary of the music library."""
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT
+                COUNT(DISTINCT s.id)                        AS total_songs,
+                COUNT(DISTINCT s.artist)                    AS total_artists,
+                COUNT(DISTINCT p.id)                        AS total_playlists,
+                COUNT(DISTINCT CASE
+                    WHEN ps2.song_id IS NULL THEN s.id
+                END)                                        AS unorganized_songs
+            FROM songs s
+            LEFT JOIN playlist_songs ps ON s.id = ps.song_id
+            LEFT JOIN playlists p ON ps.playlist_id = p.id
+            LEFT JOIN playlist_songs ps2
+                ON s.id = ps2.song_id AND ps2.playlist_id != 1;
+        """)
+        stats = cursor.fetchone()
+        return dict(stats)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# --------------------------------------------------------------------------------
 # Duplicates
 # --------------------------------------------------------------------------------
 
