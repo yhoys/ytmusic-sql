@@ -56,21 +56,6 @@ export default async function Home() {
 
       <h2 className="text-xl font-semibold text-white mb-4">Playlists</h2>
       <PlaylistsSection />
-
-      <div className="mt-10 flex gap-4">
-        <Link
-          href="/songs"
-          className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          Ver canciones
-        </Link>
-        <Link
-          href="/duplicates"
-          className="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          Ver duplicados
-        </Link>
-      </div>
     </main>
   );
 }
