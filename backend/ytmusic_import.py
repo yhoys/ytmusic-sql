@@ -159,6 +159,7 @@ def import_playlist(playlist):
 def main():
     print("Starting YouTube Music import...")
     playlists = ytmusic.get_library_playlists(limit=25)
+    print(f"Found {len(playlists)} playlists")
 
     for playlist in playlists:
         if playlist["title"] in SKIP_PLAYLISTS:
