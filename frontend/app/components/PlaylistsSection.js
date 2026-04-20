@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 async function getPlaylists() {
   const res = await fetch("http://127.0.0.1:8000/playlists", {
     cache: "no-store",
@@ -11,8 +13,9 @@ export default async function PlaylistsSection() {
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
       {data.playlists.map((playlist) => (
-        <div
+        <Link
           key={playlist.id}
+          href={`/playlists/${playlist.id}`}
           className="bg-gray-900 rounded-xl p-5 border border-gray-800 hover:border-red-500 transition-colors"
         >
           <p className="text-white font-medium mb-1">{playlist.name}</p>
@@ -24,7 +27,7 @@ export default async function PlaylistsSection() {
               Autogenerada
             </span>
           )}
-        </div>
+        </Link>
       ))}
     </div>
   );

@@ -76,9 +76,47 @@ def get_playlists():
         conn.close()
 
 
-# --------------------------------------------------------------------------------
-# Dashboard stats
-# --------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Songs by playlist
+# -----------------------------------------------------------------------------
+
+
+@app.get("/playlists/{playlist_id}/songs")
+def get_playlist_songs(playlist_id: int):
+    """Returns all songs in a specific playlist."""
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        # Verify playlist exists
+        cursor.execute("SELECT id, name FROM playlists WHERE id = %s", (playlist_id,))
+        playlist = cursor.fetchone()
+        if not playlist:
+            raise HTTPException(status_code=404, detail="Playlist not found")
+
+        cursor.execute(
+            """
+            SELECT
+                s.id,
+                s.title,
+                s.artist,
+                s.album,
+                s.language,
+                s.duration_sec,
+                s.yt_video_id,
+                ps.position
+            FROM playlist_songs ps
+            JOIN songs s ON ps.song_id = s.id
+            WHERE ps.playlist_id = %s
+            ORDER BY s.artist, s.title;
+        """,
+            (playlist_id,),
+        )
+        songs = cursor.fetchall()
+        return {"playlist": dict(playlist), "total": len(songs), "songs": songs}
+    finally:
+        cursor.close()
+        conn.close()
+
 
 # -----------------------------------------------------------------------------
 # Dashboard stats
