@@ -31,7 +31,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8000:8000"
-    depends:on:
+    depends_on:
       db:
         condition: service_healthy
 
