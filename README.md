@@ -79,7 +79,7 @@ Hay dos formas de correr el proyecto dependiendo de lo que necesites:
 
 ---
 
-## Opción 1 — Docker (datos de prueba)
+## Opción 1 - Docker (datos de prueba)
 
 La forma más rápida de ver el proyecto funcionando sin instalar nada.
 
@@ -115,7 +115,7 @@ Para detener:
 
 ---
 
-## Opción 2 — Setup local (tu biblioteca real)
+## Opción 2 - Setup local (tu biblioteca real)
 
 Para importar y gestionar tu propia biblioteca de YouTube Music.
 
@@ -126,12 +126,12 @@ Para importar y gestionar tu propia biblioteca de YouTube Music.
 - Node.js 22+
 - Cuenta de YouTube Music
 
-### Paso 1 — Clonar el repositorio
+### Paso 1 - Clonar el repositorio
 
     git clone https://github.com/TU_USUARIO/ytmusic-sql.git
     cd ytmusic-sql
 
-### Paso 2 — Base de datos
+### Paso 2 - Base de datos
 
 Ejecuta en PostgreSQL con el usuario superusuario:
 
@@ -148,7 +148,7 @@ Luego ejecuta los archivos SQL en orden desde DBeaver o psql:
     sql/01_schema.sql
     sql/02_seed_data.sql
 
-### Paso 3 — Backend
+### Paso 3 - Backend
 
     # Crear entorno virtual
     python -m venv .venv
@@ -158,7 +158,7 @@ Luego ejecuta los archivos SQL en orden desde DBeaver o psql:
     # Instalar dependencias
     pip install fastapi uvicorn psycopg2-binary python-dotenv ytmusicapi openpyxl
 
-### Paso 4 — Variables de entorno
+### Paso 4 - Variables de entorno
 
 Crea un archivo `.env` en la raíz del proyecto:
 
@@ -168,7 +168,7 @@ Crea un archivo `.env` en la raíz del proyecto:
     DB_USER=ytmusic_user
     DB_PASSWORD=tu_contraseña
 
-### Paso 5 — Importar tu biblioteca de YouTube Music
+### Paso 5 - Importar tu biblioteca de YouTube Music
 
     # Autenticarse con YouTube Music
     ytmusicapi browser
@@ -184,13 +184,13 @@ Crea un archivo `.env` en la raíz del proyecto:
 > cada 1-2 semanas. Cuando el script deje de importar canciones, repite
 > el proceso de `ytmusicapi browser` y mueve el archivo a `auth/`.
 
-### Paso 6 — Correr el backend
+### Paso 6 - Correr el backend
 
     uvicorn backend.app.main:app --reload
 
 API disponible en `http://localhost:8000`
 
-### Paso 7 — Correr el frontend
+### Paso 7 - Correr el frontend
 
     cd frontend
     npm install
@@ -200,7 +200,7 @@ Frontend disponible en `http://localhost:3000`
 
 ---
 
-## Fase 6 — En desarrollo
+## Fase 5 - En desarrollo
 
 > **Próximamente:** Versión web con autenticación OAuth 2.0 con Google.
 > El usuario podrá iniciar sesión directamente con su cuenta de Google,
