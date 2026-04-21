@@ -8,13 +8,13 @@ Diseñado para escalar: aunque arranca solo con SQL, la estructura está pensada
 
 ## Estado del proyecto
 
-| Fase | Descripción              | Estado      |
-| ---- | ------------------------ | ----------- |
-| 1    | Base de datos PostgreSQL | ✅ Completo |
-| 2    | Backend Python + FastAPI | ✅ Completo |
-| 3    | Frontend React / Next.js | ✅ Completo |
-| 4    | Docker + despliegue      | ✅ Completo |
-| 5    | IA para recomendaciones  | 🔜 Próximo  |
+| Fase | Descripción                    | Estado      |
+| ---- | ------------------------------ | ----------- |
+| 1    | Base de datos PostgreSQL       | ✅ Completo |
+| 2    | Backend Python + FastAPI       | ✅ Completo |
+| 3    | Frontend React / Next.js       | ✅ Completo |
+| 4    | Docker + despliegue            | ✅ Completo |
+| 5    | Autenticación OAuth con Google | 🔜 Próximo  |
 
 ---
 
