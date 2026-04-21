@@ -33,7 +33,12 @@ export default function RootLayout({ children }) {
             >
               Duplicados
             </Link>
-
+            <Link
+              href="/search"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              Buscar
+            </Link>
             <a
               href="http://127.0.0.1:8000/export"
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg transition-colors"
