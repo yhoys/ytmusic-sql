@@ -33,18 +33,24 @@ Al usar YouTube Music durante mucho tiempo es fácil acumular canciones duplicad
     │   └── browser.json            # Credenciales ytmusicapi (no en GitHub)
     ├── backend/
     │   ├── ytmusic_import.py       # Importa canciones desde YouTube Music
-    │   ├── export.py               # Exporta biblioteca a Excel
+    │   ├── export.py               # Exporta biblioteca a Excel (script)
     │   ├── test_connection.py      # Verifica conexión a PostgreSQL
     │   └── app/
     │       ├── main.py             # API FastAPI con todos los endpoints
     │       └── database.py         # Conexión a PostgreSQL
     ├── frontend/
     │   └── app/
+    │       ├── layout.js           # Navbar global
     │       ├── page.js             # Dashboard principal
     │       ├── songs/
-    │       │   └── page.js         # Lista de canciones
+    │       │   └── page.js         # Lista de canciones con búsqueda y paginación
+    │       ├── playlists/
+    │       │   └── [id]/
+    │       │       └── page.js     # Detalle de playlist
     │       ├── duplicates/
     │       │   └── page.js         # Detección de duplicados
+    │       ├── search/
+    │       │   └── page.js         # Búsqueda antes de agregar
     │       └── components/
     │           └── PlaylistsSection.js
     └── sql/
@@ -185,6 +191,8 @@ Para que las búsquedas con `similarity()` usen el índice en lugar de revisar t
 | GET    | `/songs/duplicates`            | Canciones duplicadas con score de similitud |
 | POST   | `/songs`                       | Agregar canción con verificación automática |
 | GET    | `/playlists`                   | Playlists con conteo de canciones           |
+| GET    | `/export`                      | Descarga la biblioteca completa en Excel    |
+| GET    | `/playlists/{id}/songs`        | Canciones de una playlist específica        |
 
 ## Importación desde YouTube Music
 
