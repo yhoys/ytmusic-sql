@@ -25,6 +25,7 @@ node_modules/
 # YouTube Music API credentials
 browser.json
 oauth.json
+auth/
 
 # Excel exports
 *.xlsx
