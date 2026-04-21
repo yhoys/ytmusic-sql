@@ -8,13 +8,13 @@ Diseñado para escalar: aunque arranca solo con SQL, la estructura está pensada
 
 ## Estado del proyecto
 
-| Fase | Descripción              | Estado       |
-| ---- | ------------------------ | ------------ |
-| 1    | Base de datos PostgreSQL | ✅ Completo  |
-| 2    | Backend Python + FastAPI | ✅ Completo  |
-| 3    | Frontend React / Next.js | ✅ Completo  |
-| 4    | Docker + despliegue      | 🔜 Próximo   |
-| 5    | IA para recomendaciones  | 🔜 Pendiente |
+| Fase | Descripción              | Estado      |
+| ---- | ------------------------ | ----------- |
+| 1    | Base de datos PostgreSQL | ✅ Completo |
+| 2    | Backend Python + FastAPI | ✅ Completo |
+| 3    | Frontend React / Next.js | ✅ Completo |
+| 4    | Docker + despliegue      | ✅ Completo |
+| 5    | IA para recomendaciones  | 🔜 Próximo  |
 
 ---
 
@@ -117,6 +117,36 @@ La documentación automática en `http://127.0.0.1:8000/docs`.
 
     ytmusicapi browser    # Autenticar con tu cuenta
     python backend/ytmusic_import.py
+
+## Ejecutar con Docker
+
+La forma más fácil de correr el proyecto completo sin instalar nada manualmente.
+
+### Requisitos
+
+- Docker Desktop instalado
+
+### Pasos
+
+    # Clonar el repositorio
+    git clone https://github.com/TU_USUARIO/ytmusic-sql.git
+    cd ytmusic-sql
+
+    # Crear el archivo .env con la contraseña
+    echo "DB_PASSWORD=tu_contraseña" > .env
+
+    # Construir y levantar todos los servicios
+    docker-compose up --build
+
+Eso levanta tres contenedores:
+
+- **PostgreSQL** en puerto 5432 con el schema y datos de prueba cargados automáticamente
+- **FastAPI** en puerto 8000 con documentación en `http://localhost:8000/docs`
+- **Next.js** en puerto 3000 en `http://localhost:3000`
+
+Para detener todo:
+
+    docker-compose down
 
 ---
 
