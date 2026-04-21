@@ -11,7 +11,6 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from datetime import datetime
 import tempfile
-import os
 from .database import get_db
 
 app = FastAPI(
