@@ -66,24 +66,99 @@ Al usar YouTube Music durante mucho tiempo es fácil acumular canciones duplicad
 - Python 3.11+
 - DBeaver o cualquier cliente SQL
 
-## Instalación
+## ¿Cómo ejecutar el proyecto?
 
-### 1. Clonar el repositorio
+Hay dos formas de correr el proyecto dependiendo de lo que necesites:
+
+|                     | Docker                                         | Setup local                                         |
+| ------------------- | ---------------------------------------------- | --------------------------------------------------- |
+| **Para qué sirve**  | Ver el sistema funcionando con datos de prueba | Usar con tu biblioteca real de YouTube Music        |
+| **Requiere**        | Solo Docker Desktop                            | PostgreSQL, Python, Node.js                         |
+| **Datos**           | Canciones de ejemplo incluidas                 | Tus canciones reales importadas desde YouTube Music |
+| **Tiempo de setup** | ~2 minutos                                     | ~15 minutos                                         |
+
+---
+
+## Opción 1 — Docker (datos de prueba)
+
+La forma más rápida de ver el proyecto funcionando sin instalar nada.
+
+### Requisitos
+
+- Docker Desktop
+
+### Pasos
+
+    # 1. Clonar el repositorio
+    git clone https://github.com/TU_USUARIO/ytmusic-sql.git
+    cd ytmusic-sql
+
+    # 2. Crear el archivo .env
+    echo "DB_PASSWORD=una_contraseña_segura" > .env
+
+    # 3. Levantar todos los servicios
+    docker-compose up --build
+
+Eso levanta tres servicios automáticamente:
+
+- Base de datos PostgreSQL con schema y datos de prueba en puerto 5432
+- API FastAPI en `http://localhost:8000` (documentación en `/docs`)
+- Frontend Next.js en `http://localhost:3000`
+
+Para detener:
+
+    docker-compose down
+
+> **Nota:** Los datos de prueba incluyen canciones con duplicados intencionales
+> para demostrar el sistema de detección. Para usar con tu biblioteca real
+> sigue el setup local.
+
+---
+
+## Opción 2 — Setup local (tu biblioteca real)
+
+Para importar y gestionar tu propia biblioteca de YouTube Music.
+
+### Requisitos
+
+- PostgreSQL 14+
+- Python 3.11+
+- Node.js 22+
+- Cuenta de YouTube Music
+
+### Paso 1 — Clonar el repositorio
 
     git clone https://github.com/TU_USUARIO/ytmusic-sql.git
     cd ytmusic-sql
 
-### 2. Crear el entorno virtual
+### Paso 2 — Base de datos
 
+Ejecuta en PostgreSQL con el usuario superusuario:
+
+    CREATE DATABASE ytmusic_sql;
+    CREATE EXTENSION IF NOT EXISTS pg_trgm;
+    CREATE EXTENSION IF NOT EXISTS unaccent;
+    CREATE USER ytmusic_user WITH PASSWORD 'tu_contraseña';
+    GRANT CONNECT ON DATABASE ytmusic_sql TO ytmusic_user;
+    GRANT USAGE ON SCHEMA public TO ytmusic_user;
+    GRANT CREATE ON SCHEMA public TO ytmusic_user;
+
+Luego ejecuta los archivos SQL en orden desde DBeaver o psql:
+
+    sql/01_schema.sql
+    sql/02_seed_data.sql
+
+### Paso 3 — Backend
+
+    # Crear entorno virtual
     python -m venv .venv
-    .venv\Scripts\activate       # Windows
-    source .venv/bin/activate    # Mac/Linux
+    .venv\Scripts\activate        # Windows
+    source .venv/bin/activate     # Mac/Linux
 
-### 3. Instalar dependencias
+    # Instalar dependencias
+    pip install fastapi uvicorn psycopg2-binary python-dotenv ytmusicapi openpyxl
 
-    pip install fastapi uvicorn psycopg2-binary python-dotenv ytmusicapi
-
-### 4. Configurar credenciales
+### Paso 4 — Variables de entorno
 
 Crea un archivo `.env` en la raíz del proyecto:
 
@@ -93,60 +168,47 @@ Crea un archivo `.env` en la raíz del proyecto:
     DB_USER=ytmusic_user
     DB_PASSWORD=tu_contraseña
 
-### 5. Crear la base de datos
+### Paso 5 — Importar tu biblioteca de YouTube Music
 
-Ejecuta en PostgreSQL con el usuario superusuario:
+    # Autenticarse con YouTube Music
+    ytmusicapi browser
+    # Pega los headers de tu navegador cuando se soliciten
+    # Mueve el archivo generado
+    move browser.json auth\browser.json   # Windows
+    mv browser.json auth/browser.json     # Mac/Linux
 
-    CREATE DATABASE ytmusic_sql;
-    CREATE EXTENSION IF NOT EXISTS pg_trgm;
-    CREATE EXTENSION IF NOT EXISTS unaccent;
+    # Importar canciones y playlists
+    python backend\ytmusic_import.py
 
-Luego ejecuta los archivos SQL en orden:
+> **Nota sobre autenticación:** Las credenciales de YouTube Music expiran
+> cada 1-2 semanas. Cuando el script deje de importar canciones, repite
+> el proceso de `ytmusicapi browser` y mueve el archivo a `auth/`.
 
-    sql/01_schema.sql
-    sql/02_seed_data.sql
-
-### 6. Correr el servidor
+### Paso 6 — Correr el backend
 
     uvicorn backend.app.main:app --reload
 
-La API queda disponible en `http://127.0.0.1:8000`.
-La documentación automática en `http://127.0.0.1:8000/docs`.
+API disponible en `http://localhost:8000`
 
-### 7. Importar tu biblioteca de YouTube Music
+### Paso 7 — Correr el frontend
 
-    ytmusicapi browser    # Autenticar con tu cuenta
-    python backend/ytmusic_import.py
+    cd frontend
+    npm install
+    npm run dev
 
-## Ejecutar con Docker
+Frontend disponible en `http://localhost:3000`
 
-La forma más fácil de correr el proyecto completo sin instalar nada manualmente.
+---
 
-### Requisitos
+## Fase 6 — En desarrollo
 
-- Docker Desktop instalado
-
-### Pasos
-
-    # Clonar el repositorio
-    git clone https://github.com/TU_USUARIO/ytmusic-sql.git
-    cd ytmusic-sql
-
-    # Crear el archivo .env con la contraseña
-    echo "DB_PASSWORD=tu_contraseña" > .env
-
-    # Construir y levantar todos los servicios
-    docker-compose up --build
-
-Eso levanta tres contenedores:
-
-- **PostgreSQL** en puerto 5432 con el schema y datos de prueba cargados automáticamente
-- **FastAPI** en puerto 8000 con documentación en `http://localhost:8000/docs`
-- **Next.js** en puerto 3000 en `http://localhost:3000`
-
-Para detener todo:
-
-    docker-compose down
+> **Próximamente:** Versión web con autenticación OAuth 2.0 con Google.
+> El usuario podrá iniciar sesión directamente con su cuenta de Google,
+> autorizar el acceso a YouTube Music, y el sistema importará su biblioteca
+> automáticamente sin necesidad de copiar cookies manualmente.
+>
+> El setup local seguirá disponible como alternativa para usuarios que
+> prefieran correr el proyecto en su propia máquina.
 
 ---
 
