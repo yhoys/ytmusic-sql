@@ -2,9 +2,12 @@ import Link from "next/link";
 import PlaylistsSection from "./components/PlaylistsSection";
 
 async function getStats() {
-  const res = await fetch("http://127.0.0.1:8000/stats", {
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/stats`,
+    {
+      cache: "no-store",
+    },
+  );
   return res.json();
 }
 

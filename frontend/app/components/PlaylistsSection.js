@@ -1,9 +1,12 @@
 import Link from "next/link";
 
 async function getPlaylists() {
-  const res = await fetch("http://127.0.0.1:8000/playlists", {
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/playlists`,
+    {
+      cache: "no-store",
+    },
+  );
   return res.json();
 }
 
