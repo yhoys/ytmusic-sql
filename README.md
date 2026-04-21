@@ -4,17 +4,19 @@ Sistema en PostgreSQL para gestionar y limpiar una biblioteca personal de YouTub
 
 Diseñado para escalar: aunque arranca solo con SQL, la estructura está pensada para agregar un backend en Python + FastAPI, un frontend en React/Next.js, integración directa con YouTube Music y Docker.
 
+![Dashboard](docs/screenshot.png)
+
 ---
 
 ## Estado del proyecto
 
-| Fase | Descripción                    | Estado      |
-| ---- | ------------------------------ | ----------- |
-| 1    | Base de datos PostgreSQL       | ✅ Completo |
-| 2    | Backend Python + FastAPI       | ✅ Completo |
-| 3    | Frontend React / Next.js       | ✅ Completo |
-| 4    | Docker + despliegue            | ✅ Completo |
-| 5    | Autenticación OAuth con Google | 🔜 Próximo  |
+| Fase | Descripción                    | Estado         |
+| ---- | ------------------------------ | -------------- |
+| 1    | Base de datos PostgreSQL       | ✅ Completo    |
+| 2    | Backend Python + FastAPI       | ✅ Completo    |
+| 3    | Frontend React / Next.js       | ✅ Completo    |
+| 4    | Docker + despliegue            | ✅ Completo    |
+| 5    | Autenticación OAuth con Google | 🔄 En progreso |
 
 ---
 
@@ -33,6 +35,7 @@ Al usar YouTube Music durante mucho tiempo es fácil acumular canciones duplicad
     │   └── browser.json            # Credenciales ytmusicapi (no en GitHub)
     ├── backend/
     │   ├── ytmusic_import.py       # Importa canciones desde YouTube Music
+    │   ├── setup_oauth.py          # Setup OAuth para cuando ytmusicapi lo corrija
     │   ├── export.py               # Exporta biblioteca a Excel (script)
     │   ├── test_connection.py      # Verifica conexión a PostgreSQL
     │   └── app/
@@ -55,16 +58,16 @@ Al usar YouTube Music durante mucho tiempo es fácil acumular canciones duplicad
     │           └── PlaylistsSection.js
     └── sql/
         ├── 01_schema.sql           # Tablas, índices, extensiones
-        ├── 02_seed_data.sql        # Datos de prueba
+        ├── 02_seed_data.sql        # Datos de prueba (usados por Docker)
         └── 03_queries.sql          # Consultas de detección y limpieza
 
 ---
 
 ## Requisitos
 
-- PostgreSQL 14+
+- PostgreSQL 16+
 - Python 3.11+
-- DBeaver o cualquier cliente SQL
+- Node.js 22+
 
 ## ¿Cómo ejecutar el proyecto?
 
@@ -90,7 +93,7 @@ La forma más rápida de ver el proyecto funcionando sin instalar nada.
 ### Pasos
 
     # 1. Clonar el repositorio
-    git clone https://github.com/TU_USUARIO/ytmusic-sql.git
+    git clone https://github.com/yhoys/ytmusic-sql.git
     cd ytmusic-sql
 
     # 2. Crear el archivo .env
@@ -121,14 +124,14 @@ Para importar y gestionar tu propia biblioteca de YouTube Music.
 
 ### Requisitos
 
-- PostgreSQL 14+
+- PostgreSQL 16+
 - Python 3.11+
 - Node.js 22+
 - Cuenta de YouTube Music
 
 ### Paso 1 - Clonar el repositorio
 
-    git clone https://github.com/TU_USUARIO/ytmusic-sql.git
+    git clone https://github.com/yhoys/ytmusic-sql.git
     cd ytmusic-sql
 
 ### Paso 2 - Base de datos
@@ -200,12 +203,16 @@ Frontend disponible en `http://localhost:3000`
 
 ---
 
-## Fase 5 - En desarrollo
+## Fase 5 - En progreso
 
-> **Próximamente:** Versión web con autenticación OAuth 2.0 con Google.
+> **En desarrollo:** Autenticación OAuth 2.0 con Google.
 > El usuario podrá iniciar sesión directamente con su cuenta de Google,
 > autorizar el acceso a YouTube Music, y el sistema importará su biblioteca
 > automáticamente sin necesidad de copiar cookies manualmente.
+>
+> El cliente OAuth y la pantalla de consentimiento ya están configurados
+> en Google Cloud Console. Pendiente de corrección de un bug en `ytmusicapi`
+> relacionado con el campo `refresh_token_expires_in`.
 >
 > El setup local seguirá disponible como alternativa para usuarios que
 > prefieran correr el proyecto en su propia máquina.
@@ -223,26 +230,19 @@ Frontend disponible en `http://localhost:3000`
 
 ---
 
-## Cómo ejecutar
+## API endpoints
 
-### Requisitos
-
-- PostgreSQL 14+
-- DBeaver o cualquier cliente SQL
-
-### Pasos
-
-```sql
--- 1. Crear la base de datos
-CREATE DATABASE ytmusic_sql;
-
--- 2. Crear extensiones (requiere superusuario)
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS unaccent;
-
--- 3. Ejecutar los archivos en orden
--- 01_schema.sql → 02_seed_data.sql → 03_queries.sql
-```
+| Método | Endpoint                       | Descripción                                 |
+| ------ | ------------------------------ | ------------------------------------------- |
+| GET    | `/`                            | Health check                                |
+| GET    | `/songs`                       | Todas las canciones                         |
+| GET    | `/songs/search?title=&artist=` | Búsqueda inteligente antes de agregar       |
+| GET    | `/songs/duplicates`            | Canciones duplicadas con score de similitud |
+| POST   | `/songs`                       | Agregar canción con verificación automática |
+| GET    | `/playlists`                   | Playlists con conteo de canciones           |
+| GET    | `/playlists/{id}/songs`        | Canciones de una playlist específica        |
+| GET    | `/stats`                       | Resumen de la biblioteca                    |
+| GET    | `/export`                      | Descarga la biblioteca completa en Excel    |
 
 ---
 
@@ -260,6 +260,18 @@ CREATE EXTENSION IF NOT EXISTS unaccent;
 
 ---
 
+## Importación desde YouTube Music
+
+El script `backend/ytmusic_import.py` conecta directamente con tu cuenta de YouTube Music usando `ytmusicapi` y:
+
+- Importa todas tus playlists y canciones automáticamente
+- Detecta canciones ya existentes antes de insertar (por `yt_video_id` y similitud de título)
+- Evita duplicados usando `ON CONFLICT DO NOTHING`
+- Mapea nombres de playlists autogeneradas (`Liked Music` → `Música que te gustó`)
+- Es seguro de ejecutar múltiples veces sin crear duplicados
+
+---
+
 ## Decisiones de diseño
 
 **¿Por qué `song_backups` duplica las columnas de `songs`?**
@@ -273,38 +285,13 @@ Para que las búsquedas con `similarity()` usen el índice en lugar de revisar t
 
 ---
 
-## API endpoints
-
-| Método | Endpoint                       | Descripción                                 |
-| ------ | ------------------------------ | ------------------------------------------- |
-| GET    | `/`                            | Health check                                |
-| GET    | `/songs`                       | Todas las canciones                         |
-| GET    | `/songs/search?title=&artist=` | Búsqueda inteligente antes de agregar       |
-| GET    | `/songs/duplicates`            | Canciones duplicadas con score de similitud |
-| POST   | `/songs`                       | Agregar canción con verificación automática |
-| GET    | `/playlists`                   | Playlists con conteo de canciones           |
-| GET    | `/export`                      | Descarga la biblioteca completa en Excel    |
-| GET    | `/playlists/{id}/songs`        | Canciones de una playlist específica        |
-
-## Importación desde YouTube Music
-
-El script `backend/ytmusic_import.py` conecta directamente con tu cuenta de YouTube Music usando `ytmusicapi` y:
-
-- Importa todas tus playlists y canciones automáticamente
-- Detecta canciones ya existentes antes de insertar (por `yt_video_id` y similitud de título)
-- Evita duplicados usando `ON CONFLICT DO NOTHING`
-- Mapea nombres de playlists autogeneradas (`Liked Music` → `Música que te gustó`)
-- Es seguro de ejecutar múltiples veces sin crear duplicados
-
----
-
 ## Stack tecnológico
 
-| Capa                          | Tecnología       |
-| ----------------------------- | ---------------- |
-| Base de datos                 | PostgreSQL 14+   |
-| Backend (fase 2)              | Python + FastAPI |
-| Frontend (fase 3)             | React / Next.js  |
-| Integración YT Music (fase 2) | ytmusicapi       |
-| Contenedores (fase 4)         | Docker           |
-| Control de versiones          | Git + GitHub     |
+| Capa                 | Tecnología       |
+| -------------------- | ---------------- |
+| Base de datos        | PostgreSQL 16+   |
+| Backend              | Python + FastAPI |
+| Frontend             | React / Next.js  |
+| Integración YT Music | ytmusicapi       |
+| Contenedores         | Docker           |
+| Control de versiones | Git + GitHub     |
